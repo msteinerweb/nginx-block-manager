@@ -1,3 +1,5 @@
+import { describe, test, expect, beforeEach, afterEach } from '@jest/globals';
+
 import { NginxServerKey, NginxLocationKey } from './NginxBlockTypes';
 import { NginxBlockManager } from './NginxBlockManager';
 import * as fse from 'fs-extra';
@@ -52,12 +54,10 @@ describe('NginxManager', () => {
     test('Enable and disable a configuration file', async () => {
         await manager.enableConfigFile(testDomain);
         const configFileEnabled = await manager.checkConfigFileEnabled(testDomain);
-        console.log(`configFileEnabled: ${configFileEnabled}`);
         expect(configFileEnabled).toBe(true);
 
         await manager.disableConfigFile(testDomain);
         const configFileDisabled = !(await manager.checkConfigFileEnabled(testDomain));
-        console.log(`configFileDisabled: ${configFileDisabled}`);
         expect(configFileDisabled).toBe(true);
     });
 
@@ -113,7 +113,7 @@ describe('NginxManager', () => {
         expect(subdomainsAfterDelete).not.toContain(`test.${testDomain}`);
     });
 
-    // Test: Add, update, and remove a key from the location block
+    // // Test: Add, update, and remove a key from the location block
     test('addMultipleKeysToLocation', async () => {
         const location = '/';
         const keysToAdd: Partial<Record<NginxLocationKey, string>> = {
@@ -125,8 +125,11 @@ describe('NginxManager', () => {
         await manager.addMultipleKeysToLocation(testDomain, location, keysToAdd);
 
         for (const key in keysToAdd) {
-            const value = await manager.getKeyValueFromLocation(testDomain, location, key as NginxLocationKey);
-            expect(value).toBe(keysToAdd[key]);
+            if (keysToAdd.hasOwnProperty(key)) {
+                const typedKey = key as NginxLocationKey;
+                const value = await manager.getKeyValueFromLocation(testDomain, location, typedKey);
+                expect(value).toBe(keysToAdd[typedKey]);
+            }
         }
     });
 
@@ -135,6 +138,7 @@ describe('NginxManager', () => {
         const location = '/';
         const keysToAdd: Partial<Record<NginxLocationKey, string>> = { autoindex: 'value1', try_files: 'value2' };
         const keysToUpdate: Partial<Record<NginxLocationKey, string>> = { autoindex: 'newValue1', try_files: 'newValue2' };
+        const keysToRemove: NginxLocationKey[] = ['autoindex'];
 
         await manager.createLocation(testDomain, location);
 
@@ -145,8 +149,22 @@ describe('NginxManager', () => {
         await manager.updateMultipleKeysInLocation(testDomain, location, keysToUpdate);
 
         for (const key in keysToUpdate) {
+            if (keysToUpdate.hasOwnProperty(key)) {
+                const typedKey = key as NginxLocationKey;
+                const value = await manager.getKeyValueFromLocation(testDomain, location, typedKey);
+                expect(value).toBe(keysToUpdate[typedKey]);
+            }
+        }
+
+        // Now, remove the keys from the location block
+        for (const key of keysToRemove) {
+            await manager.removeKeyFromLocation(testDomain, location, key);
+        }
+
+        // Verify that the keys have been removed from the location block
+        for (const key of keysToRemove) {
             const value = await manager.getKeyValueFromLocation(testDomain, location, key as NginxLocationKey);
-            expect(value).toBe(keysToUpdate[key]);
+            expect(value).toBeNull();
         }
     });
 
@@ -184,8 +202,11 @@ describe('NginxManager', () => {
         await manager.addMultipleKeysToServer(testDomain, keysToAdd);
 
         for (const key in keysToAdd) {
-            const value = await manager.getKeyValueFromServer(testDomain, key as NginxServerKey);
-            expect(value).toBe(keysToAdd[key]);
+            if (keysToAdd.hasOwnProperty(key)) {
+                const typedKey = key as NginxServerKey;
+                const value = await manager.getKeyValueFromServer(testDomain, typedKey);
+                expect(value).toBe(keysToAdd[typedKey]);
+            }
         }
     });
 
@@ -200,11 +221,13 @@ describe('NginxManager', () => {
         await manager.updateMultipleKeysInServer(testDomain, keysToUpdate);
 
         for (const key in keysToUpdate) {
-            const value = await manager.getKeyValueFromServer(testDomain, key as NginxServerKey);
-            expect(value).toBe(keysToUpdate[key]);
+            if (keysToUpdate.hasOwnProperty(key)) {
+                const typedKey = key as NginxServerKey;
+                const value = await manager.getKeyValueFromServer(testDomain, typedKey);
+                expect(value).toBe(keysToUpdate[typedKey]);
+            }
         }
     });
-
 
     test('removeMultipleKeysFromServer', async () => {
         const keysToAdd: Partial<Record<NginxServerKey, string>> = { server_name: 'value1', listen: 'value2' };
@@ -222,7 +245,6 @@ describe('NginxManager', () => {
         }
     });
 
-
     // Test: Get all key-value pairs from the server block
     test('getAllKeyValuesFromServer', async () => {
         const allKeyValues = await manager.getAllKeyValuesFromServer(testDomain);
@@ -231,7 +253,6 @@ describe('NginxManager', () => {
         expect(allKeyValues).toHaveProperty('listen');
         expect(allKeyValues).toHaveProperty('server_name');
     });
-
 
     // Error handling tests
     describe('error handling', () => {

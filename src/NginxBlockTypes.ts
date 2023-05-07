@@ -52,11 +52,3 @@ export type NginxLocationKey =
     | 'limit_rate'
     | 'auth_basic'
     | 'auth_basic_user_file';
-
-export type NginxServerBlock = {
-    [directive in NginxServerKey]?: string | string[];
-};
-
-export type NginxLocationBlock = {
-    [directive in NginxLocationKey]?: string | string[];
-};

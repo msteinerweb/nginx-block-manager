@@ -1,8 +1,13 @@
 {
-  "name": "nginx-block-manager",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "@msteiner/nginx-block-manager",
+  "version": "1.0.1",
+  "description": "Update and manage nginx server blocks",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/msteinerweb/nginx-block-manager"
+  },
   "scripts": {
     "build": "node_modules/.bin/tsc",
     "watch": "node_modules/.bin/tsc --watch --incremental --preserveWatchOutput",
