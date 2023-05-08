@@ -44,12 +44,6 @@ const manager = new NginxBlockManager();
     // Add a key-value pair to the location block
     await manager.addKeyToLocation('example.com', '/api', 'proxy_pass', 'http://localhost:3000');
 
-    // Test Nginx configuration
-    const isConfigValid = await manager.testNginxConfig();
-    console.log(`Nginx configuration is ${isConfigValid ? 'valid' : 'invalid'}`);
-
-    // Reload Nginx configuration
-    await manager.reloadNginx();
 })();
 ```
 
