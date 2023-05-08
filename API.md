@@ -1,101 +1,153 @@
-# Nginx Block Manager API Reference
+Here is an updated API.md for the `nginx-block-manager` repository, including the new methods you have implemented:
 
-This API reference provides detailed information on how to use the classes and methods provided by the Nginx Block Manager library.
+# Nginx Block Manager API
+
+`NginxBlockManager` is a utility class to manage Nginx configuration files with an easy-to-use API. It allows you to create, read, update and delete Nginx server blocks, location blocks, and their key-value pairs.
 
 ## Table of Contents
 
-- [Class: NginxBlockManager](#class-nginxblockmanager)
-  - [Constructor](#constructor)
-  - [Methods](#methods)
-- [Class: ServerBlock](#class-serverblock)
-  - [Methods](#methods-1)
-- [Class: LocationBlock](#class-locationblock)
-  - [Methods](#methods-2)
+- [Constructor](#constructor)
+- [Config Files](#config-files)
+- [Server Blocks](#server-blocks)
+- [Location Blocks](#location-blocks)
+- [Utilities](#utilities)
 
-## Class: NginxBlockManager
+## Constructor
 
-### Constructor
+### NginxBlockManager(paths: NginxPaths)
 
-```typescript
-constructor(configPath: string)
-```
+- `paths`: An object with two properties:
+  - `nginxConfigPath`: The path to the Nginx configuration files (usually `/etc/nginx/sites-available`).
+  - `nginxEnabledPath`: The path to the enabled Nginx configuration files (usually `/etc/nginx/sites-enabled`).
 
-#### Parameters
+Create a new instance of the `NginxBlockManager` class.
 
-- `configPath` (string): Path to the Nginx configuration file.
+## Config Files
 
-### Methods
+### createConfigFile(domain: string): Promise<void>
 
-#### `readConfig(): void`
+- `domain`: The domain name for the server block (e.g., `example.com`).
 
-Reads the Nginx configuration file.
+Create a new configuration file for the given domain.
 
-#### `writeConfig(): void`
+### checkConfigFileExists(domain: string): Promise<boolean>
 
-Writes the changes made to the Nginx configuration file.
+- `domain`: The domain name for the server block (e.g., `example.com`).
 
-#### `createServerBlock(params: Record<string, string>): ServerBlock`
+Check if a configuration file exists for the given domain.
 
-Creates a new server block and returns the created `ServerBlock` instance.
+### deleteConfigFile(domain: string): Promise<void>
 
-##### Parameters
+- `domain`: The domain name for the server block (e.g., `example.com`).
 
-- `params` (Record<string, string>): An object containing key-value pairs of directives and their values.
+Delete the configuration file for the given domain.
 
-##### Returns
+### enableConfigFile(domain: string): Promise<void>
 
-- `ServerBlock`: The created server block instance.
+- `domain`: The domain name for the server block (e.g., `example.com`).
 
-## Class: ServerBlock
+Enable the configuration file for the given domain by creating a symlink in the `sites-enabled` directory.
 
-### Methods
+### disableConfigFile(domain: string): Promise<void>
 
-#### `createLocationBlock(params: Record<string, string>): LocationBlock`
+- `domain`: The domain name for the server block (e.g., `example.com`).
 
-Creates a new location block within the server block and returns the created `LocationBlock` instance.
+Disable the configuration file for the given domain by removing the symlink in the `sites-enabled` directory.
 
-##### Parameters
+### checkConfigFileEnabled(domain: string): Promise<boolean>
 
-- `params` (Record<string, string>): An object containing key-value pairs of directives and their values.
+- `domain`: The domain name for the server block (e.g., `example.com`).
 
-##### Returns
+Check if the configuration file for the given domain is enabled.
 
-- `LocationBlock`: The created location block instance.
+## Server Blocks
 
-## Class: LocationBlock
+### addKeyToServer(domain: string, key: NginxServerKey, value: string): Promise<void>
 
-### Methods
+- `domain`: The domain name for the server block (e.g., `example.com`).
+- `key`: The key to add to the server block (e.g., `listen`).
+- `value`: The value to associate with the key (e.g., `80`).
 
-There are no specific methods for the `LocationBlock` class. The `LocationBlock` class instances store the directives and their values as properties, and you can directly interact with them.
+Add a key-value pair to the server block of the given domain.
 
-## Example
+### updateKeyInServer(domain: string, key: NginxServerKey, value: string): Promise<void>
 
-```typescript
-import { NginxBlockManager } from 'nginx-block-manager';
+- `domain`: The domain name for the server block (e.g., `example.com`).
+- `key`: The key to update in the server block (e.g., `listen`).
+- `value`: The new value to associate with the key (e.g., `80`).
 
-const configPath = '/path/to/your/nginx.conf';
+Update the value of a key in the server block of the given domain.
 
-const nginxManager = new NginxBlockManager(configPath);
+### deleteKeyFromServer(domain: string, key: NginxServerKey): Promise<void>
 
-// Read the Nginx configuration file
-nginxManager.readConfig();
+- `domain`: The domain name for the server block (e.g., `example.com`).
+- `key`: The key to remove from the server block (e.g., `listen`).
 
-// Add a new server block
-const newServerBlock = nginxManager.createServerBlock({
-    listen: '80',
-    server_name: 'example.com',
-    root: '/var/www/html'
-});
+Remove a key-value pair from the server block of thegiven domain.
 
-// Add a location block to the new server block
-const locationBlock = newServerBlock.createLocationBlock({
-    location: '/',
-    try_files: '$uri $uri/ /index.html',
-    expires: '30d'
-});
+### getKeyFromServer(domain: string, key: NginxServerKey): Promise<string>
 
-// Save the changes to the configuration file
-nginxManager.writeConfig();
-```
+- `domain`: The domain name for the server block (e.g., `example.com`).
+- `key`: The key to retrieve from the server block (e.g., `listen`).
 
-For more information, please refer to the [README.md](./README.md) file.
+Retrieve the value of a key from the server block of the given domain.
+
+### getAllServers(): Promise<string[]>
+
+List all the servers in the nginx configuration directory.
+
+## Location Blocks
+
+### addLocationBlock(domain: string, location: string): Promise<void>
+
+- `domain`: The domain name for the server block (e.g., `example.com`).
+- `location`: The location block path (e.g., `/api`).
+
+Add a new location block to the server block of the given domain.
+
+### deleteLocationBlock(domain: string, location: string): Promise<void>
+
+- `domain`: The domain name for the server block (e.g., `example.com`).
+- `location`: The location block path (e.g., `/api`).
+
+Delete a location block from the server block of the given domain.
+
+### addKeyToLocation(domain: string, location: string, key: NginxLocationKey, value: string): Promise<void>
+
+- `domain`: The domain name for the server block (e.g., `example.com`).
+- `location`: The location block path (e.g., `/api`).
+- `key`: The key to add to the location block (e.g., `proxy_pass`).
+- `value`: The value to associate with the key (e.g., `http://localhost:3000`).
+
+Add a key-value pair to a location block in the server block of the given domain.
+
+### updateKeyInLocation(domain: string, location: string, key: NginxLocationKey, value: string): Promise<void>
+
+- `domain`: The domain name for the server block (e.g., `example.com`).
+- `location`: The location block path (e.g., `/api`).
+- `key`: The key to update in the location block (e.g., `proxy_pass`).
+- `value`: The new value to associate with the key (e.g., `http://localhost:3000`).
+
+Update the value of a key in a location block in the server block of the given domain.
+
+### deleteKeyFromLocation(domain: string, location: string, key: NginxLocationKey): Promise<void>
+
+- `domain`: The domain name for the server block (e.g., `example.com`).
+- `location`: The location block path (e.g., `/api`).
+- `key`: The key to remove from the location block (e.g., `proxy_pass`).
+
+Remove a key-value pair from a location block in the server block of the given domain.
+
+### getKeyFromLocation(domain: string, location: string, key: NginxLocationKey): Promise<string>
+
+- `domain`: The domain name for the server block (e.g., `example.com`).
+- `location`: The location block path (e.g., `/api`).
+- `key`: The key to retrieve from the location block (e.g., `proxy_pass`).
+
+Retrieve the value of a key from a location block in the server block of the given domain.
+
+## Utilities
+
+### getAllConfigs(): Promise<string[]>
+
+List all configuration files in the Nginx configuration directory.

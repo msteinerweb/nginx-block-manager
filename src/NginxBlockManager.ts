@@ -20,8 +20,7 @@ export class NginxBlockManager {
     constructor({
         nginxConfigPath = '/etc/nginx/sites-available',
         nginxEnabledPath = '/etc/nginx/sites-enabled',
-    }: { nginxConfigPath: string; nginxEnabledPath: string; }) {
-
+    }: { nginxConfigPath?: string; nginxEnabledPath?: string; } = {}) {
 
         this.nginxConfigPath = nginxConfigPath;
         this.nginxEnabledPath = nginxEnabledPath;

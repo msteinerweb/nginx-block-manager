@@ -1,6 +1,6 @@
 {
   "name": "@msteiner/nginx-block-manager",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Update and manage nginx server blocks",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
