@@ -118,7 +118,7 @@ class NginxBlockManager {
      * @param domain
      * @returns {Promise<void>}
      */
-    async removeConfigFile(domain) {
+    async deleteConfigFile(domain) {
         const configName = this.getConfigFileName(domain);
         const filePath = path.resolve(`${this.nginxConfigPath}/${configName}`);
         if (!await fse.pathExists(filePath)) {
@@ -148,13 +148,21 @@ class NginxBlockManager {
         return fse.pathExists(filePath);
     }
     /**
+     * Lists Nginx configuration files.
+     * @returns {Promise<string[]>} A promise resolving to an array of configuration file names.
+     */
+    async getAllConfigs() {
+        const configFiles = await fse.readdir(this.nginxConfigPath);
+        return configFiles;
+    }
+    /**
      * Creates a subdomain for the specified domain.
      * @param {string} domain - The domain to create the subdomain for.
      * @param {string} subdomain - The subdomain to create.
      * @returns {Promise<void>}
      * @throws {Error} If the configuration file for the domain does not exist or the subdomain already exists.
      */
-    async createSubdomain(domain, subdomain) {
+    async addSubdomain(domain, subdomain) {
         const configName = this.getConfigFileName(domain);
         const configPath = path.resolve(`${this.nginxConfigPath}/${configName}`);
         if (!await fse.pathExists(configPath)) {
@@ -178,7 +186,7 @@ class NginxBlockManager {
      * @returns {Promise<void>}
      * @throws {Error} If the configuration file for the domain does not exist or the subdomain does not exist.
      */
-    async removeSubdomain(domain, subdomain) {
+    async deleteSubdomain(domain, subdomain) {
         const configName = this.getConfigFileName(domain);
         const configPath = path.resolve(`${this.nginxConfigPath}/${configName}`);
         if (!await fse.pathExists(configPath)) {
@@ -301,7 +309,7 @@ class NginxBlockManager {
      * @param {string} key - The key to remove.
      * @returns {Promise<void>}
      */
-    async removeKeyFromServer(domain, key) {
+    async deleteKeyFromServer(domain, key) {
         await this.processServerBlock(domain, (server) => {
             // Check if the key exists in the server block
             const keyExists = server[key] !== undefined;
@@ -351,12 +359,24 @@ class NginxBlockManager {
         });
     }
     /**
+     * Lists all the servers in the nginx configuration directory.
+     * @returns {Promise<string[]>}
+     */
+    async getAllServers() {
+        const files = await this.getAllConfigs();
+        const servers = files.map((file) => {
+            file = file.replace('.conf', '');
+            return file;
+        });
+        return servers;
+    }
+    /**
      * Removes multiple keys from the server block of the specified domain's configuration file.
      * @param {string} domain - The domain to remove the keys from.
      * @param {string[]} keys - An array of keys to remove.
      * @returns {Promise<void>}
      */
-    async removeMultipleKeysFromServer(domain, keys) {
+    async deleteMultipleKeysFromServer(domain, keys) {
         await this.processServerBlock(domain, (server) => {
             for (const key of keys) {
                 // Check if the key exists in the server block
@@ -407,7 +427,7 @@ class NginxBlockManager {
      * @returns {Promise<void>}
      * @throws {Error} If the location block already exists.
      */
-    async createLocation(domain, location) {
+    async addLocation(domain, location) {
         const configName = this.getConfigFileName(domain);
         const configPath = path.resolve(`${this.nginxConfigPath}/${configName}`);
         // make sure location is not empty
@@ -481,7 +501,7 @@ class NginxBlockManager {
      * @param {string} location - The path of the location block to remove.
      * @returns {Promise<void>}
      */
-    async removeLocation(domain, location) {
+    async deleteLocation(domain, location) {
         await this.processLocationBlocks(domain, (server, locationBlock, index) => {
             if ((locationBlock === null || locationBlock === void 0 ? void 0 : locationBlock._value) === location) {
                 server._remove('location', index);
@@ -495,7 +515,7 @@ class NginxBlockManager {
      * @param {string} newLocation - The new path of the location block.
      * @returns {Promise<void>}
      */
-    async renameLocation(domain, oldLocation, newLocation) {
+    async updateLocation(domain, oldLocation, newLocation) {
         await this.processLocationBlocks(domain, (server, locationBlock, index) => {
             if ((locationBlock === null || locationBlock === void 0 ? void 0 : locationBlock._value) === oldLocation) {
                 locationBlock._value = newLocation;
@@ -617,7 +637,7 @@ class NginxBlockManager {
      * @param {string[]} keys - An array of keys to remove.
      * @returns {Promise<void>}
      */
-    async removeMultipleKeysFromLocation(domain, location, keys) {
+    async deleteMultipleKeysFromLocation(domain, location, keys) {
         await this.processLocationBlocks(domain, (server, locationBlock, index) => {
             if ((locationBlock === null || locationBlock === void 0 ? void 0 : locationBlock._value) === location) {
                 for (const key of keys) {
@@ -638,7 +658,7 @@ class NginxBlockManager {
      * @param {string} key - The key to remove.
      * @returns {Promise<void>}
      */
-    async removeKeyFromLocation(domain, location, key) {
+    async deleteKeyFromLocation(domain, location, key) {
         await this.processLocationBlocks(domain, (server, locationBlock, index) => {
             if ((locationBlock === null || locationBlock === void 0 ? void 0 : locationBlock._value) === location) {
                 // Check if the key exists in the location block

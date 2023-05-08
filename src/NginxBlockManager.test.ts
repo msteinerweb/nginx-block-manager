@@ -33,16 +33,16 @@ describe('NginxManager', () => {
 
     // Test: Create a new configuration file with special characters
     test('Delete a configuration file', async () => {
-        await manager.removeConfigFile(testDomain);
+        await manager.deleteConfigFile(testDomain);
         const configFileExists = await manager.checkConfigFileExists(testDomain);
         expect(configFileExists).toBe(false);
     });
 
     // Test: Create a new configuration file with special characters
     test('getAllLocations should return all location paths for a given domain', async () => {
-        await manager.createLocation(testDomain, '/');
-        await manager.createLocation(testDomain, '/api');
-        await manager.createLocation(testDomain, '/static');
+        await manager.addLocation(testDomain, '/');
+        await manager.addLocation(testDomain, '/api');
+        await manager.addLocation(testDomain, '/static');
 
         const locations = await manager.getAllLocations(testDomain);
         expect(locations).toContain('/');
@@ -71,14 +71,14 @@ describe('NginxManager', () => {
         keyValue = await manager.getKeyValueFromServer(testDomain, 'include');
         expect(keyValue).toBe('updated_value');
 
-        await manager.removeKeyFromServer(testDomain, 'include');
+        await manager.deleteKeyFromServer(testDomain, 'include');
         keyValue = await manager.getKeyValueFromServer(testDomain, 'include');
         expect(keyValue).toBe(null);
     });
 
     // Test: Create a new location block and modify it
     test('Create a new location block and modify it', async () => {
-        await manager.createLocation(testDomain, '/test');
+        await manager.addLocation(testDomain, '/test');
         const locations = await manager.getAllLocations(testDomain);
         expect(locations).toContain('/test');
 
@@ -90,25 +90,25 @@ describe('NginxManager', () => {
         keyValue = await manager.getKeyValueFromLocation(testDomain, '/test', 'alias');
         expect(keyValue).toBe('updated_value');
 
-        await manager.removeKeyFromLocation(testDomain, '/test', 'alias');
+        await manager.deleteKeyFromLocation(testDomain, '/test', 'alias');
         keyValue = await manager.getKeyValueFromLocation(testDomain, '/test', 'alias');
         expect(keyValue).toBe(null);
     });
 
     // Test: Remove a location block
     test('Remove a location block', async () => {
-        await manager.removeLocation(testDomain, '/test');
+        await manager.deleteLocation(testDomain, '/test');
         const locations = await manager.getAllLocations(testDomain);
         expect(locations).not.toContain('/test');
     });
 
     // Test: Subdomain creation and deletion
     test('Create and delete a subdomain', async () => {
-        await manager.createSubdomain(testDomain, 'test');
+        await manager.addSubdomain(testDomain, 'test');
         const subdomains = await manager.getSubdomains(testDomain);
         expect(subdomains).toContain(`test.${testDomain}`);
 
-        await manager.removeSubdomain(testDomain, 'test');
+        await manager.deleteSubdomain(testDomain, 'test');
         const subdomainsAfterDelete = await manager.getSubdomains(testDomain);
         expect(subdomainsAfterDelete).not.toContain(`test.${testDomain}`);
     });
@@ -121,7 +121,7 @@ describe('NginxManager', () => {
             try_files: 'value2'
         };
 
-        await manager.createLocation(testDomain, location);
+        await manager.addLocation(testDomain, location);
         await manager.addMultipleKeysToLocation(testDomain, location, keysToAdd);
 
         for (const key in keysToAdd) {
@@ -140,7 +140,7 @@ describe('NginxManager', () => {
         const keysToUpdate: Partial<Record<NginxLocationKey, string>> = { autoindex: 'newValue1', try_files: 'newValue2' };
         const keysToRemove: NginxLocationKey[] = ['autoindex'];
 
-        await manager.createLocation(testDomain, location);
+        await manager.addLocation(testDomain, location);
 
         // First, add the keys to the location block
         await manager.addMultipleKeysToLocation(testDomain, location, keysToAdd);
@@ -158,7 +158,7 @@ describe('NginxManager', () => {
 
         // Now, remove the keys from the location block
         for (const key of keysToRemove) {
-            await manager.removeKeyFromLocation(testDomain, location, key);
+            await manager.deleteKeyFromLocation(testDomain, location, key);
         }
 
         // Verify that the keys have been removed from the location block
@@ -169,11 +169,11 @@ describe('NginxManager', () => {
     });
 
     // Test: Add, update, and remove a key from the location block
-    test('removeMultipleKeysFromLocation', async () => {
+    test('deleteMultipleKeysFromLocation', async () => {
         const location = '/';
         const keysToRemove: NginxLocationKey[] = ['autoindex', 'try_files'];
 
-        await manager.removeMultipleKeysFromLocation(testDomain, location, keysToRemove);
+        await manager.deleteMultipleKeysFromLocation(testDomain, location, keysToRemove);
 
         for (const key of keysToRemove) {
             const value = await manager.getKeyValueFromLocation(testDomain, location, key);
@@ -185,7 +185,7 @@ describe('NginxManager', () => {
     test('getAllKeyValuesFromLocation', async () => {
         const location = '/';
 
-        await manager.createLocation(testDomain, location);
+        await manager.addLocation(testDomain, location);
         await manager.addMultipleKeysToLocation(testDomain, location, { index: 'index.html', root: '/var/www/html' });
 
         const allKeyValues = await manager.getAllKeyValuesFromLocation(testDomain, location);
@@ -237,7 +237,7 @@ describe('NginxManager', () => {
         await manager.addMultipleKeysToServer(testDomain, keysToAdd);
 
         // Then, remove the keys
-        await manager.removeMultipleKeysFromServer(testDomain, keysToRemove);
+        await manager.deleteMultipleKeysFromServer(testDomain, keysToRemove);
 
         for (const key of keysToRemove) {
             const value = await manager.getKeyValueFromServer(testDomain, key);
@@ -254,6 +254,30 @@ describe('NginxManager', () => {
         expect(allKeyValues).toHaveProperty('server_name');
     });
 
+    // Test: List all configuration files
+    test('List all configuration files', async () => {
+        // Create another test configuration file
+        const anotherTestDomain = 'another-test.com';
+        await manager.createConfigFile(anotherTestDomain);
+
+        // Call the getAllConfigs() method and verify if it returns both configuration files
+        const configFiles = await manager.getAllConfigs();
+        expect(configFiles).toContain(`${testDomain}.conf`);
+        expect(configFiles).toContain(`${anotherTestDomain}.conf`);
+    });
+
+    // Test: List all servers
+    test('List all servers', async () => {
+        // Create another test configuration file
+        const anotherTestDomain = 'another-test.com';
+        await manager.createConfigFile(anotherTestDomain);
+
+        // Call the getAllServers() method and verify if it returns both server names
+        const serverNames = await manager.getAllServers();
+        expect(serverNames).toContain(testDomain);
+        expect(serverNames).toContain(anotherTestDomain);
+    });
+
     // Error handling tests
     describe('error handling', () => {
 
@@ -263,7 +287,7 @@ describe('NginxManager', () => {
 
         // Test: Create a new configuration file with a domain that contains special characters
         test('should throw an error when removing a config file for a domain that does not exist', async () => {
-            await expect(manager.removeConfigFile('nonexistent.com')).rejects.toThrow();
+            await expect(manager.deleteConfigFile('nonexistent.com')).rejects.toThrow();
         });
 
         // Test: Create a new configuration file with a domain that contains special characters
@@ -288,7 +312,7 @@ describe('NginxManager', () => {
 
         // Test: Create a new configuration file with a domain that contains special characters
         test('should throw an error when removing a key from a server block for a domain that does not exist', async () => {
-            await expect(manager.removeKeyFromServer('nonexistent.com', 'include')).rejects.toThrow();
+            await expect(manager.deleteKeyFromServer('nonexistent.com', 'include')).rejects.toThrow();
         });
 
         // Test: Create a new configuration file with a domain that contains special characters
@@ -303,17 +327,17 @@ describe('NginxManager', () => {
 
         // Test: Create a new configuration file with a domain that contains special characters
         test('should throw an error when removing a key from a location block for a domain that does not exist', async () => {
-            await expect(manager.removeKeyFromLocation('nonexistent.com', '/', 'alias')).rejects.toThrow();
+            await expect(manager.deleteKeyFromLocation('nonexistent.com', '/', 'alias')).rejects.toThrow();
         });
 
         // Test: Create a new configuration file with a domain that contains special characters
         test('should throw an error when creating a location block for a domain that does not exist', async () => {
-            await expect(manager.createLocation('nonexistent.com', '/test')).rejects.toThrow();
+            await expect(manager.addLocation('nonexistent.com', '/test')).rejects.toThrow();
         });
 
         // Test: Create a new configuration file with a domain that contains special characters
         test('should throw an error when deleting a location block for a domain that does not exist', async () => {
-            await expect(manager.removeLocation('nonexistent.com', '/test')).rejects.toThrow();
+            await expect(manager.deleteLocation('nonexistent.com', '/test')).rejects.toThrow();
         });
 
         test('should throw an error when domain is an empty string', async () => {
@@ -321,7 +345,7 @@ describe('NginxManager', () => {
         });
 
         test('should throw an error when location is an empty string', async () => {
-            await expect(manager.createLocation(testDomain, '')).rejects.toThrow();
+            await expect(manager.addLocation(testDomain, '')).rejects.toThrow();
         });
 
     });
@@ -335,7 +359,7 @@ describe('NginxManager', () => {
         });
 
         afterEach(async () => {
-            await manager.removeConfigFile(testDomain2);
+            await manager.deleteConfigFile(testDomain2);
         });
 
         test('should not interfere with each other\'s configuration files', async () => {
@@ -346,7 +370,7 @@ describe('NginxManager', () => {
             keyValue = await manager.getKeyValueFromServer(testDomain2, 'include');
             expect(keyValue).toBe(null);
 
-            await manager.createLocation(testDomain, '/test');
+            await manager.addLocation(testDomain, '/test');
             const locations = await manager.getAllLocations(testDomain);
             expect(locations).toContain('/test');
 
@@ -358,8 +382,8 @@ describe('NginxManager', () => {
     // Test with multiple blocks
     describe('multiple blocks', () => {
         beforeEach(async () => {
-            await manager.createLocation(testDomain, '/api');
-            await manager.createLocation(testDomain, '/static');
+            await manager.addLocation(testDomain, '/api');
+            await manager.addLocation(testDomain, '/static');
         });
 
         test('should handle multiple location blocks correctly', async () => {
@@ -370,7 +394,7 @@ describe('NginxManager', () => {
             keyValue = await manager.getKeyValueFromLocation(testDomain, '/static', 'alias');
             expect(keyValue).toBe(null);
 
-            await manager.removeLocation(testDomain, '/api');
+            await manager.deleteLocation(testDomain, '/api');
             const locations = await manager.getAllLocations(testDomain);
             expect(locations).not.toContain('/api');
             expect(locations).toContain('/static');
@@ -384,7 +408,7 @@ describe('NginxManager', () => {
             const configFileExists = await manager.checkConfigFileExists(testDomainSpecial);
             expect(configFileExists).toBe(true);
 
-            await manager.removeConfigFile(testDomainSpecial);
+            await manager.deleteConfigFile(testDomainSpecial);
             const configFileRemoved = !(await manager.checkConfigFileExists(testDomainSpecial));
             expect(configFileRemoved).toBe(true);
         });

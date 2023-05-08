@@ -114,7 +114,7 @@ export class NginxBlockManager {
      * @param domain
      * @returns {Promise<void>}
      */
-    async removeConfigFile(domain: string): Promise<void> {
+    async deleteConfigFile(domain: string): Promise<void> {
         const configName = this.getConfigFileName(domain);
         const filePath = path.resolve(`${this.nginxConfigPath}/${configName}`);
 
@@ -150,13 +150,22 @@ export class NginxBlockManager {
     }
 
     /**
+     * Lists Nginx configuration files.
+     * @returns {Promise<string[]>} A promise resolving to an array of configuration file names.
+     */
+    async getAllConfigs(): Promise<string[]> {
+        const configFiles = await fse.readdir(this.nginxConfigPath);
+        return configFiles;
+    }
+
+    /**
      * Creates a subdomain for the specified domain.
      * @param {string} domain - The domain to create the subdomain for.
      * @param {string} subdomain - The subdomain to create.
      * @returns {Promise<void>}
      * @throws {Error} If the configuration file for the domain does not exist or the subdomain already exists.
      */
-    async createSubdomain(domain: string, subdomain: string): Promise<void> {
+    async addSubdomain(domain: string, subdomain: string): Promise<void> {
         const configName = this.getConfigFileName(domain);
         const configPath = path.resolve(`${this.nginxConfigPath}/${configName}`);
 
@@ -186,7 +195,7 @@ export class NginxBlockManager {
      * @returns {Promise<void>}
      * @throws {Error} If the configuration file for the domain does not exist or the subdomain does not exist.
      */
-    async removeSubdomain(domain: string, subdomain: string): Promise<void> {
+    async deleteSubdomain(domain: string, subdomain: string): Promise<void> {
         const configName = this.getConfigFileName(domain);
         const configPath = path.resolve(`${this.nginxConfigPath}/${configName}`);
 
@@ -335,7 +344,7 @@ export class NginxBlockManager {
      * @param {string} key - The key to remove.
      * @returns {Promise<void>}
      */
-    async removeKeyFromServer(domain: string, key: NginxServerKey): Promise<void> {
+    async deleteKeyFromServer(domain: string, key: NginxServerKey): Promise<void> {
         await this.processServerBlock(domain, (server) => {
             // Check if the key exists in the server block
             const keyExists = server[key] !== undefined;
@@ -390,12 +399,25 @@ export class NginxBlockManager {
     }
 
     /**
+     * Lists all the servers in the nginx configuration directory.
+     * @returns {Promise<string[]>}
+     */
+    async getAllServers(): Promise<string[]> {
+        const files = await this.getAllConfigs();
+        const servers = files.map((file) => {
+            file = file.replace('.conf', '');
+            return file;
+        });
+        return servers;
+    }
+
+    /**
      * Removes multiple keys from the server block of the specified domain's configuration file.
      * @param {string} domain - The domain to remove the keys from.
      * @param {string[]} keys - An array of keys to remove.
      * @returns {Promise<void>}
      */
-    async removeMultipleKeysFromServer(domain: string, keys: NginxServerKey[]): Promise<void> {
+    async deleteMultipleKeysFromServer(domain: string, keys: NginxServerKey[]): Promise<void> {
         await this.processServerBlock(domain, (server) => {
             for (const key of keys) {
                 // Check if the key exists in the server block
@@ -432,8 +454,8 @@ export class NginxBlockManager {
      * @param {string} domain - The domain to get the key-value pairs from.
      * @returns {Promise<Object>} - A promise that resolves to an object containing all key-value pairs from the server block.
      */
-    async getAllKeyValuesFromServer(domain: string): Promise<Partial<{[key in NginxServerKey]: string}>> {
-        const keyValues: Partial<{[key in NginxServerKey]: string}> = {};
+    async getAllKeyValuesFromServer(domain: string): Promise<Partial<{ [key in NginxServerKey]: string }>> {
+        const keyValues: Partial<{ [key in NginxServerKey]: string }> = {};
 
         await this.processServerBlock(domain, (server) => {
             for (const key in server) {
@@ -453,7 +475,7 @@ export class NginxBlockManager {
      * @returns {Promise<void>}
      * @throws {Error} If the location block already exists.
      */
-    async createLocation(domain: string, location: string): Promise<void> {
+    async addLocation(domain: string, location: string): Promise<void> {
         const configName = this.getConfigFileName(domain);
         const configPath = path.resolve(`${this.nginxConfigPath}/${configName}`);
 
@@ -541,7 +563,7 @@ export class NginxBlockManager {
      * @param {string} location - The path of the location block to remove.
      * @returns {Promise<void>}
      */
-    async removeLocation(domain: string, location: string): Promise<void> {
+    async deleteLocation(domain: string, location: string): Promise<void> {
         await this.processLocationBlocks(domain, (server, locationBlock, index) => {
             if (locationBlock?._value === location) {
                 server._remove('location', index);
@@ -556,7 +578,7 @@ export class NginxBlockManager {
      * @param {string} newLocation - The new path of the location block.
      * @returns {Promise<void>}
      */
-    async renameLocation(domain: string, oldLocation: string, newLocation: string): Promise<void> {
+    async updateLocation(domain: string, oldLocation: string, newLocation: string): Promise<void> {
         await this.processLocationBlocks(domain, (server, locationBlock, index) => {
             if (locationBlock?._value === oldLocation) {
                 locationBlock._value = newLocation;
@@ -693,7 +715,7 @@ export class NginxBlockManager {
      * @param {string[]} keys - An array of keys to remove.
      * @returns {Promise<void>}
      */
-    async removeMultipleKeysFromLocation(domain: string, location: string, keys: NginxLocationKey[]): Promise<void> {
+    async deleteMultipleKeysFromLocation(domain: string, location: string, keys: NginxLocationKey[]): Promise<void> {
         await this.processLocationBlocks(domain, (server, locationBlock, index) => {
             if (locationBlock?._value === location) {
                 for (const key of keys) {
@@ -716,7 +738,7 @@ export class NginxBlockManager {
      * @param {string} key - The key to remove.
      * @returns {Promise<void>}
      */
-    async removeKeyFromLocation(domain: string, location: string, key: NginxLocationKey): Promise<void> {
+    async deleteKeyFromLocation(domain: string, location: string, key: NginxLocationKey): Promise<void> {
         await this.processLocationBlocks(domain, (server, locationBlock, index) => {
             if (locationBlock?._value === location) {
                 // Check if the key exists in the location block
@@ -759,8 +781,8 @@ export class NginxBlockManager {
      * @param {string} location - The path of the location block to get the key-value pairs from.
      * @returns {Promise<Object | null>} - A promise that resolves to an object containing all key-value pairs from the location block, or null if the location is not found.
      */
-    async getAllKeyValuesFromLocation(domain: string, location: string): Promise<Partial<{[key in NginxLocationKey]: string}> | null> {
-        let keyValues: Partial<{[key in NginxLocationKey]: string}> | null = null;
+    async getAllKeyValuesFromLocation(domain: string, location: string): Promise<Partial<{ [key in NginxLocationKey]: string }> | null> {
+        let keyValues: Partial<{ [key in NginxLocationKey]: string }> | null = null;
 
         await this.processLocationBlocks(domain, (server, locationBlock, index) => {
             if (locationBlock?._value === location) {

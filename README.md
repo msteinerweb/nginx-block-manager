@@ -1,48 +1,79 @@
-# NginxBlockManager
-NginxBlockManager is a JavaScript class that provides methods for managing Nginx server configuration files.
-## Requirements
-- Node.js
-- Nginx server
+# Nginx Block Manager
+
+Nginx Block Manager is a TypeScript library that provides a simple interface to manage Nginx configuration files. It allows you to easily read, modify, and generate Nginx server and location blocks. The main goal of this library is to simplify the management of Nginx configuration files, especially when it comes to automating tasks.
+
+## Features
+
+- Read and parse existing Nginx configuration files
+- Create and modify server and location blocks
+- Generate valid Nginx configuration files
+- Support for Nginx directives
+
+## Getting Started
+
+These instructions will help you set up and use Nginx Block Manager in your project.
+
+### Prerequisites
+
+You need to have Node.js and npm installed on your system. You can download and install them from the official [Node.js website](https://nodejs.org/).
+
+### Installation
+
+To install Nginx Block Manager, run the following command in your project's root directory:
+
+```bash
+npm install nginx-block-manager
+```
 
 ## Usage
-js
-import { NginxBlockManager } from './NginxBlockManager';
 
-const manager = new NginxBlockManager({
-    nginxConfigPath: '/etc/nginx/sites-available',
-    nginxEnabledPath: '/etc/nginx/sites-enabled',
+Here is a basic example of how to use Nginx Block Manager in your project:
+
+```typescript
+import { NginxBlockManager } from 'nginx-block-manager';
+
+const configPath = '/path/to/your/nginx.conf';
+
+const nginxManager = new NginxBlockManager(configPath);
+
+// Read the Nginx configuration file
+nginxManager.readConfig();
+
+// Add a new server block
+const newServerBlock = nginxManager.createServerBlock({
+    listen: '80',
+    server_name: 'example.com',
+    root: '/var/www/html'
 });
-## API
-### constructor({ nginxConfigPath, nginxEnabledPath })
-Creates a new NginxBlockManager instance with the given configuration options.
-### createConfigFile(domain: string)
-Creates a new configuration file for the given domain.
-### enableConfigFile(domain: string)
-Enables the configuration file for the given domain.
-### disableConfigFile(domain: string)
-Disables the configuration file for the given domain.
-### removeConfigFile(domain: string)
-Removes the configuration file for the given domain.
-### checkConfigFileEnabled(domain: string)
-Checks if the configuration file for the specified domain is enabled (i.e., if the symlink to the configuration file exists in the 'sites-enabled' directory).
-### checkConfigFileExists(domain: string)
-Checks if the configuration file for the specified domain exists.
-### createSubdomain(domain: string, subdomain: string)
-Creates a subdomain for the specified domain.
-### removeSubdomain(domain: string, subdomain: string)
-Removes a subdomain from the specified domain.
-### getSubdomains(domain: string)
-Retrieves a list of subdomains for the specified domain.
-### checkSubdomainExists(domain: string, subdomain: string)
-Checks if a subdomain exists for the specified domain.
-...
-### getAllKeyValuesFromServer(domain: string)
-Retrieves all key-value pairs from the server block of the specified domain's configuration file.
-### createLocation(domain: string, location: string)
-Creates a new location block with the specified path in the specified domain's configuration file.
-### removeKeyFromLocation(domain: string, location: string, key: string)
-Removes the specified key from the specified location block in the specified domain's configuration file.
-### getKeyValueFromLocation(domain: string, location: string, key: string)
-Retrieves the value of the specified key from the specified location block in the specified domain's configuration file.
-### getAllKeyValuesFromLocation(domain: string, location: string)
-Retrieves all key-value pairs from the specified location block in the specified domain's configuration file.
+
+// Add a location block to the new server block
+const locationBlock = newServerBlock.createLocationBlock({
+    location: '/',
+    try_files: '$uri $uri/ /index.html',
+    expires: '30d'
+});
+
+// Save the changes to the configuration file
+nginxManager.writeConfig();
+```
+
+## API Reference
+
+For a detailed API reference, please refer to the [API documentation](./docs/API.md).
+
+## Contributing
+
+We welcome contributions from the community. If you would like to contribute to the development of Nginx Block Manager, please see the [CONTRIBUTING.md](./CONTRIBUTING.md) file for guidelines.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
+
+## Acknowledgements
+
+- [Nginx](https://nginx.org/) - The high-performance web server and reverse proxy server that inspired this library
+- [TypeScript](https://www.typescriptlang.org/) - The programming language used to develop this library
+
+## Contact
+
+For any questions, suggestions, or bug reports, feel free to open an issue on the [GitHub repository](https://github.com/msteinerweb/nginx-block-manager/issues).

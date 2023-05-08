@@ -45,7 +45,7 @@ export declare class NginxBlockManager {
      * @param domain
      * @returns {Promise<void>}
      */
-    removeConfigFile(domain: string): Promise<void>;
+    deleteConfigFile(domain: string): Promise<void>;
     /**
      * Checks if the configuration file for the specified domain is enabled (i.e., if the symlink to the configuration file exists in the 'sites-enabled' directory).
      * @param {string} domain - The domain to check.
@@ -59,13 +59,18 @@ export declare class NginxBlockManager {
      */
     checkConfigFileExists(domain: string): Promise<boolean>;
     /**
+     * Lists Nginx configuration files.
+     * @returns {Promise<string[]>} A promise resolving to an array of configuration file names.
+     */
+    getAllConfigs(): Promise<string[]>;
+    /**
      * Creates a subdomain for the specified domain.
      * @param {string} domain - The domain to create the subdomain for.
      * @param {string} subdomain - The subdomain to create.
      * @returns {Promise<void>}
      * @throws {Error} If the configuration file for the domain does not exist or the subdomain already exists.
      */
-    createSubdomain(domain: string, subdomain: string): Promise<void>;
+    addSubdomain(domain: string, subdomain: string): Promise<void>;
     /**
      * Removes a subdomain from the specified domain.
      * @param {string} domain - The domain to remove the subdomain from.
@@ -73,7 +78,7 @@ export declare class NginxBlockManager {
      * @returns {Promise<void>}
      * @throws {Error} If the configuration file for the domain does not exist or the subdomain does not exist.
      */
-    removeSubdomain(domain: string, subdomain: string): Promise<void>;
+    deleteSubdomain(domain: string, subdomain: string): Promise<void>;
     /**
      * Retrieves a list of subdomains for the specified domain.
      * @param {string} domain - The domain to retrieve the subdomains for.
@@ -119,7 +124,7 @@ export declare class NginxBlockManager {
      * @param {string} key - The key to remove.
      * @returns {Promise<void>}
      */
-    removeKeyFromServer(domain: string, key: NginxServerKey): Promise<void>;
+    deleteKeyFromServer(domain: string, key: NginxServerKey): Promise<void>;
     /**
      * Adds multiple key-value pairs to the server block of the specified domain's configuration file.
      * @param {string} domain - The domain to add the key-value pairs to.
@@ -139,12 +144,17 @@ export declare class NginxBlockManager {
         [key in NginxServerKey]?: string;
     }): Promise<void>;
     /**
+     * Lists all the servers in the nginx configuration directory.
+     * @returns {Promise<string[]>}
+     */
+    getAllServers(): Promise<string[]>;
+    /**
      * Removes multiple keys from the server block of the specified domain's configuration file.
      * @param {string} domain - The domain to remove the keys from.
      * @param {string[]} keys - An array of keys to remove.
      * @returns {Promise<void>}
      */
-    removeMultipleKeysFromServer(domain: string, keys: NginxServerKey[]): Promise<void>;
+    deleteMultipleKeysFromServer(domain: string, keys: NginxServerKey[]): Promise<void>;
     /**
      * Retrieves the value of the specified key from the server block of the specified domain's configuration file.
      * @param {string} domain - The domain to get the key-value from.
@@ -167,7 +177,7 @@ export declare class NginxBlockManager {
      * @returns {Promise<void>}
      * @throws {Error} If the location block already exists.
      */
-    createLocation(domain: string, location: string): Promise<void>;
+    addLocation(domain: string, location: string): Promise<void>;
     /**
      * Processes the location blocks of the specified domain's configuration file, applying a callback function to each location block found.
      * @private
@@ -182,7 +192,7 @@ export declare class NginxBlockManager {
      * @param {string} location - The path of the location block to remove.
      * @returns {Promise<void>}
      */
-    removeLocation(domain: string, location: string): Promise<void>;
+    deleteLocation(domain: string, location: string): Promise<void>;
     /**
      * Renames the specified location block in the specified domain's configuration file.
      * @param {string} domain - The domain to rename the location block in.
@@ -190,7 +200,7 @@ export declare class NginxBlockManager {
      * @param {string} newLocation - The new path of the location block.
      * @returns {Promise<void>}
      */
-    renameLocation(domain: string, oldLocation: string, newLocation: string): Promise<void>;
+    updateLocation(domain: string, oldLocation: string, newLocation: string): Promise<void>;
     /**
      * Retrieves all location paths from the specified domain's configuration file.
      * @param {string} domain - The domain to get the location paths from.
@@ -238,7 +248,7 @@ export declare class NginxBlockManager {
      * @param {string[]} keys - An array of keys to remove.
      * @returns {Promise<void>}
      */
-    removeMultipleKeysFromLocation(domain: string, location: string, keys: NginxLocationKey[]): Promise<void>;
+    deleteMultipleKeysFromLocation(domain: string, location: string, keys: NginxLocationKey[]): Promise<void>;
     /**
      * Removes the specified key from the specified location block in the specified domain's configuration file.
      * @param {string} domain - The domain to remove the key from.
@@ -246,7 +256,7 @@ export declare class NginxBlockManager {
      * @param {string} key - The key to remove.
      * @returns {Promise<void>}
      */
-    removeKeyFromLocation(domain: string, location: string, key: NginxLocationKey): Promise<void>;
+    deleteKeyFromLocation(domain: string, location: string, key: NginxLocationKey): Promise<void>;
     /**
      * Retrieves the value of the specified key from the specified location block in the specified domain's configuration file.
      * @param {string} domain - The domain to get the key-value from.
