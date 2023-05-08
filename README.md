@@ -8,8 +8,6 @@ Nginx Block Manager is a utility to help you manage server and location blocks i
 - Create, update, and delete location blocks within server blocks
 - Retrieve information from server and location blocks
 - List all servers in the Nginx configuration directory
-- Test Nginx configuration for syntax errors
-- Reload Nginx configuration
 
 ## Usage
 
