@@ -11,9 +11,9 @@ export declare class NginxBlockManager {
      * @param {string} options.nginxConfigPath - The path to the Nginx configuration files.
      * @param {string} options.nginxEnabledPath - The path to the enabled Nginx configuration files.
      */
-    constructor({ nginxConfigPath, nginxEnabledPath, }: {
-        nginxConfigPath: string;
-        nginxEnabledPath: string;
+    constructor({ nginxConfigPath, nginxEnabledPath, }?: {
+        nginxConfigPath?: string;
+        nginxEnabledPath?: string;
     });
     /**
      * Generates the configuration file name based on the domain.

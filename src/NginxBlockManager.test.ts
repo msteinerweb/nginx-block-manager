@@ -102,6 +102,13 @@ describe('NginxManager', () => {
         expect(locations).not.toContain('/test');
     });
 
+    // Test: Check if subdomain exists
+    test('Check if subdomain exists', async () => {
+        await manager.addSubdomain(testDomain, 'www');
+        const subdomainExists = await manager.checkSubdomainExists(testDomain, 'www');
+        expect(subdomainExists).toBe(true);
+    });
+
     // Test: Subdomain creation and deletion
     test('Create and delete a subdomain', async () => {
         await manager.addSubdomain(testDomain, 'test');
@@ -113,7 +120,7 @@ describe('NginxManager', () => {
         expect(subdomainsAfterDelete).not.toContain(`test.${testDomain}`);
     });
 
-    // // Test: Add, update, and remove a key from the location block
+    // Test: Add, update, and remove a key from the location block
     test('addMultipleKeysToLocation', async () => {
         const location = '/';
         const keysToAdd: Partial<Record<NginxLocationKey, string>> = {
@@ -346,6 +353,12 @@ describe('NginxManager', () => {
 
         test('should throw an error when location is an empty string', async () => {
             await expect(manager.addLocation(testDomain, '')).rejects.toThrow();
+        });
+
+        // Test: should throw an error if the same subdomain is added twice
+        test('should throw an error when adding a subdomain that already exists', async () => {
+            await manager.addSubdomain(testDomain, 'www');
+            await expect(manager.addSubdomain(testDomain, 'www')).rejects.toThrow();
         });
 
     });

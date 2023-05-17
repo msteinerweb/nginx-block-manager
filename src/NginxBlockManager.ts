@@ -173,14 +173,15 @@ export class NginxBlockManager {
         }
 
         // check if subdomain already exists
-        const fullSubDomain = `${subdomain}.${domain}`;
-        if (await this.checkSubdomainExists(domain, fullSubDomain)) {
+
+        if (await this.checkSubdomainExists(domain, subdomain)) {
             throw new Error(`Subdomain ${subdomain} already exists`);
         }
 
         const subdomains = await this.getSubdomains(domain);
 
         // add subdomain to subdomains
+        const fullSubDomain = `${subdomain}.${domain}`;
         subdomains.push(fullSubDomain);
 
         // update server_name
@@ -203,8 +204,7 @@ export class NginxBlockManager {
         }
 
         // check if subdomain exists
-        const fullSubDomain = `${subdomain}.${domain}`;
-        if (!await this.checkSubdomainExists(domain, fullSubDomain)) {
+        if (!await this.checkSubdomainExists(domain, subdomain)) {
             throw new Error(`Subdomain ${subdomain} does not exist`);
         }
 
@@ -212,6 +212,7 @@ export class NginxBlockManager {
         const subdomains = serverName?.split(' ') || [];
 
         // remove subdomain from subdomains
+        const fullSubDomain = `${subdomain}.${domain}`;
         const index = subdomains.indexOf(fullSubDomain);
         subdomains.splice(index, 1);
 
@@ -255,9 +256,11 @@ export class NginxBlockManager {
             throw new Error(`Config file for ${domain} does not exist`);
         }
 
+        const fullSubDomain = `${subdomain}.${domain}`; // form the full subdomain
         const subdomains = await this.getSubdomains(domain);
-        return subdomains.includes(subdomain);
+        return subdomains.includes(fullSubDomain); // check for the full subdomain
     }
+
 
     /**
      * Processes the server block of the specified domain's configuration file, applying a callback function to each server block found.
