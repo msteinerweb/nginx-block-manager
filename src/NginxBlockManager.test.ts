@@ -31,6 +31,31 @@ describe('NginxManager', () => {
         expect(configFileExists).toBe(true);
     });
 
+    // Test: Update the configuration file
+    test('Update the configuration file', async () => {
+        const newDomain = 'newTestDomain.com';
+
+        // Initially create the config file for testDomain
+        let configFileExists = await manager.checkConfigFileExists(testDomain);
+        expect(configFileExists).toBe(true);
+
+        // New config file should not exist at this point
+        configFileExists = await manager.checkConfigFileExists(newDomain);
+        expect(configFileExists).toBe(false);
+
+        // Update the config file
+        await manager.updateConfigFile(testDomain, newDomain);
+
+        // Original config file should no longer exist
+        configFileExists = await manager.checkConfigFileExists(testDomain);
+        expect(configFileExists).toBe(false);
+
+        // New config file should now exist
+        configFileExists = await manager.checkConfigFileExists(newDomain);
+        expect(configFileExists).toBe(true);
+
+    });
+
     // Test: Create a new configuration file with special characters
     test('Delete a configuration file', async () => {
         await manager.deleteConfigFile(testDomain);
@@ -39,7 +64,7 @@ describe('NginxManager', () => {
     });
 
     // Test: Create a new configuration file with special characters
-    test('getAllLocations should return all location paths for a given domain', async () => {
+    test('A list of all Locations under a domain should return', async () => {
         await manager.addLocation(testDomain, '/');
         await manager.addLocation(testDomain, '/api');
         await manager.addLocation(testDomain, '/static');

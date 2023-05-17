@@ -108,6 +108,43 @@ export class NginxBlockManager {
     }
 
     /**
+     * Updates the configuration file for a domain
+     * @param domain
+     * @param newDomain
+     * @returns {Promise<void>}
+     */
+    async updateConfigFile(domain: string, newDomain: string): Promise<void> {
+
+        // make sure the domain string isn't empty
+        if (!newDomain || !domain) {
+            throw new Error('Domain name cannot be empty');
+        }
+
+        const configName = this.getConfigFileName(domain);
+        const configPath = path.resolve(`${this.nginxConfigPath}/${configName}`);
+
+        // make sure the config file exists
+        if (!await fse.pathExists(configPath)) {
+            throw new Error(`Config file for ${domain} does not exist`);
+        }
+
+        // make sure config is disabled
+        if (await this.checkConfigFileEnabled(domain)) {
+            throw new Error(`Config file for ${domain} is enabled. Please disable it first`);
+        }
+
+        const newConfigName = this.getConfigFileName(newDomain);
+        const newConfigPath = path.resolve(`${this.nginxConfigPath}/${newConfigName}`);
+
+        // make sure the new config file doesn't already exist
+        if (await fse.pathExists(newConfigPath)) {
+            throw new Error(`Config file for ${newDomain} already exists`);
+        }
+
+        await fse.rename(configPath, newConfigPath);
+    }
+
+    /**
      * Remove the config file for a domain
      *
      * @param domain
